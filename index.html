@@ -151,6 +151,41 @@
   .field-pill:hover, .field-pill.on { background: rgba(79,142,247,0.15); color: var(--accent); border-color: rgba(79,142,247,0.4); }
 
   .coord-pill { font-size: 10px; font-family: var(--font-mono); color: var(--muted); }
+
+  /* ── SIDEBAR COLLAPSE ── */
+  .sidebar {
+    transition: width 0.25s ease, min-width 0.25s ease;
+  }
+  .sidebar.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden;
+    border-right: none;
+  }
+  .sidebar-toggle-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 280px;
+    width: 18px;
+    height: 48px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 600;
+    transition: left 0.25s ease;
+    color: var(--muted);
+    font-size: 10px;
+    user-select: none;
+  }
+  .sidebar-toggle-btn:hover { background: #2a2d3a; color: var(--text); }
+  .sidebar-toggle-btn.collapsed { left: 0; }
+  .workspace { position: relative; }
 </style>
 </head>
 <body>
@@ -165,7 +200,8 @@
 
 <div class="workspace">
 
-  <div class="sidebar">
+  <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Toggle panel">‹</button>
+  <div class="sidebar" id="sidebarPanel">
     <div class="sidebar-scroll">
 
       <!-- LIVE LAYERS -->
@@ -184,21 +220,6 @@
           <span class="layer-label">Conservation Areas</span>
           <span class="layer-count" id="cnt-conservation">—</span>
           <button class="layer-toggle on" id="tog-conservation"></button>
-        </div>
-
-        <div class="layer-item" onclick="toggleLayer('article4')">
-          <span class="layer-swatch" style="background:var(--article4);border-color:var(--article4-border)"></span>
-          <span class="layer-label">Article 4 Directions</span>
-          <span class="layer-count" id="cnt-article4">—</span>
-          <button class="layer-toggle on" id="tog-article4"></button>
-        </div>
-
-
-        <div class="layer-item" onclick="toggleA4HF()">
-          <span class="layer-swatch" style="background:var(--a4hf);border-color:var(--a4hf-border)"></span>
-          <span class="layer-label">Article 4 · H&F (PDF)</span>
-          <span class="layer-count" id="cnt-a4hf">44</span>
-          <button class="layer-toggle on" id="tog-a4hf"></button>
         </div>
 
         <div class="status-row" id="apiStatus">
@@ -333,14 +354,6 @@ const LAYER_CONFIG = {
     label: 'Conservation area',
     tagClass: 'conservation',
     pointRadius: 7,
-  },
-  article4: {
-    dataset: 'article-4-direction-area',
-    color: '#9650dc',
-    fillColor: 'rgba(150,80,220,0.3)',
-    label: 'Article 4 direction',
-    tagClass: 'article4',
-    pointRadius: 7,
   }
 };
 
@@ -376,7 +389,7 @@ function setBase(key) {
 
 // ── LAYER STATE ──────────────────────────────────────────────────────────────
 const layerGroups = {};
-const layerVisible = { brownfield: true, conservation: true, article4: true };
+const layerVisible = { brownfield: true, conservation: true };
 Object.keys(LAYER_CONFIG).forEach(k => { layerGroups[k] = L.layerGroup().addTo(map); });
 
 function toggleLayer(key) {
@@ -515,7 +528,7 @@ function escHtml(s) {
 }
 
 // ── LOAD ALL LAYERS ───────────────────────────────────────────────────────────
-const layerStatus = { brownfield: null, conservation: null, article4: null };
+const layerStatus = { brownfield: null, conservation: null };
 
 async function loadAllLayers() {
   document.getElementById('statusDot').className = 'status-dot loading';
@@ -543,7 +556,7 @@ function reloadVisibleLayers() { loadAllLayers();
 renderBoundary();
 renderOfficeLoss();
 renderPostcodes();
-renderA4HF(); }
+}
 
 map.on('moveend', updateViewportInfo);
 function updateViewportInfo() {
@@ -784,48 +797,6 @@ function renderPostcodes() {
 }
 
 
-// ── ARTICLE 4 DIRECTION H&F LAYER (from PDF) ────────────────────────────────
-const A4HF_GEOJSON = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2262,51.4922]},"properties":{"id":1,"name":"Hammersmith Town Centre","map_ref":"Map 1","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2291382,51.5037239]},"properties":{"id":2,"name":"Shepherd's Bush Town Centre","map_ref":"Map 2","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.1959669,51.4800689]},"properties":{"id":3,"name":"Fulham Town Centre","map_ref":"Map 3","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2271572,51.4915258]},"properties":{"id":4,"name":"Kings House 174 Hammersmith Rd","map_ref":"Map 4","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2265809,51.4993962]},"properties":{"id":5,"name":"43 Brook Green","map_ref":"Map 5","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2237374,51.4936891]},"properties":{"id":6,"name":"68-80 Hammersmith Rd","map_ref":"Map 6","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.21326,51.4924199]},"properties":{"id":7,"name":"Lincoln House Gliddon Road","map_ref":"Map 7","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2239266,51.493841]},"properties":{"id":8,"name":"184-188 Shepherds Bush Rd","map_ref":"Map 8","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2194007,51.5082222]},"properties":{"id":9,"name":"Westfield Shopping Centre","map_ref":"Map 9","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2258,51.5094]},"properties":{"id":10,"name":"Television Centre Wood Lane","map_ref":"Map 10","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2329118,51.5135899]},"properties":{"id":11,"name":"White City Area A","map_ref":"Map 11","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2269,51.5127]},"properties":{"id":12,"name":"White City Area B","map_ref":"Map 12","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2273,51.5115]},"properties":{"id":13,"name":"Imperial College White City","map_ref":"Map 13","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.1967766,51.4870459]},"properties":{"id":14,"name":"Empress State Building","map_ref":"Map 14","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2518103,51.5278058]},"properties":{"id":15,"name":"Old Oak Common Lane","map_ref":"Map 15","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2401955,51.5014171]},"properties":{"id":16,"name":"Askew Road","map_ref":"Map 16","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2104,51.4905]},"properties":{"id":17,"name":"North End Road","map_ref":"Map 17","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2125894,51.4804146]},"properties":{"id":18,"name":"Fulham Road","map_ref":"Map 18","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.1903306,51.4678877]},"properties":{"id":19,"name":"Wandsworth Bridge Road North","map_ref":"Map 19","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.1878857,51.4698948]},"properties":{"id":20,"name":"Wandsworth Bridge Road South","map_ref":"Map 20","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.1922865,51.4766644]},"properties":{"id":21,"name":"King's Road Fulham","map_ref":"Map 21","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.1991537,51.4716074]},"properties":{"id":22,"name":"Parsons Green New Kings Road","map_ref":"Map 22","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2075585,51.4707457]},"properties":{"id":23,"name":"New Kings Road","map_ref":"Map 23","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2006646,51.4746174]},"properties":{"id":24,"name":"Parsons Green Lane 1","map_ref":"Map 24","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2006646,51.4746174]},"properties":{"id":25,"name":"Parsons Green Lane 2","map_ref":"Map 25","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2104362,51.468934]},"properties":{"id":26,"name":"Fulham High Street","map_ref":"Map 26","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2155816,51.4760651]},"properties":{"id":27,"name":"Fulham Palace Road","map_ref":"Map 27","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2212474,51.4847206]},"properties":{"id":28,"name":"Fulham Palace Road North","map_ref":"Map 28","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2041,51.4828]},"properties":{"id":29,"name":"Fulham Cross Lillie Road","map_ref":"Map 29","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2118909,51.4798062]},"properties":{"id":30,"name":"Munster Road","map_ref":"Map 30","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2123313,51.4887713]},"properties":{"id":31,"name":"Barons Court Palliser Road","map_ref":"Map 31","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2211581,51.4994873]},"properties":{"id":32,"name":"Blythe Road","map_ref":"Map 32","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2324613,51.5008057]},"properties":{"id":33,"name":"Brackenbury Village","map_ref":"Map 33","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.236,51.4948]},"properties":{"id":34,"name":"King Street Hamlet Gardens","map_ref":"Map 34","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2180489,51.5060297]},"properties":{"id":35,"name":"Uxbridge Road West","map_ref":"Map 35","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2351797,51.5130549]},"properties":{"id":36,"name":"Bloemfontein Road","map_ref":"Map 36","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2153091,51.5078654]},"properties":{"id":37,"name":"Edward Wood Estate","map_ref":"Map 37","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2282096,51.5081022]},"properties":{"id":38,"name":"Uxbridge Road East","map_ref":"Map 38","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2392404,51.4998342]},"properties":{"id":39,"name":"Goldhawk Road","map_ref":"Map 39","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2229,51.4979]},"properties":{"id":40,"name":"Shepherds Bush Road","map_ref":"Map 40","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.235,51.4947]},"properties":{"id":41,"name":"King Street Ravenscourt Park","map_ref":"Map 41","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2165898,51.4923311]},"properties":{"id":42,"name":"Latymer Court Hammersmith Road","map_ref":"Map 42","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.2230619,51.4886048]},"properties":{"id":43,"name":"Fulham Palace Road South","map_ref":"Map 43","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.1935,51.4728]},"properties":{"id":44,"name":"Talina Centre Imperial Road","map_ref":"Map 44","document":"Non-Immediate Article 4 Direction - H&F Council 2023"}}]};
-
-const a4hfLayerGroup = L.layerGroup().addTo(map);
-let a4hfVisible = true;
-
-function toggleA4HF() {
-  a4hfVisible = !a4hfVisible;
-  const tog = document.getElementById('tog-a4hf');
-  if (a4hfVisible) { a4hfLayerGroup.addTo(map); tog.classList.add('on'); }
-  else { map.removeLayer(a4hfLayerGroup); tog.classList.remove('on'); }
-}
-
-function renderA4HF() {
-  a4hfLayerGroup.clearLayers();
-  A4HF_GEOJSON.features.forEach(f => {
-    const p = f.properties;
-    const [lng, lat] = f.geometry.coordinates;
-
-    const marker = L.circleMarker([lat, lng], {
-      radius: 10,
-      color: '#e03030',
-      fillColor: '#e03030',
-      fillOpacity: 0.45,
-      weight: 2,
-      opacity: 0.9,
-    });
-
-    const html = `<div class="popup-inner">
-      <div class="popup-tag" style="background:rgba(224,48,48,0.15);color:#e03030">Article 4 Direction · H&amp;F</div>
-      <div class="popup-title">${p.name}</div>
-      <div class="popup-row"><span class="k">Reference</span><span class="v">${p.map_ref}</span></div>
-      <div class="popup-row"><span class="k">Type</span><span class="v">Non-Immediate Article 4 Direction</span></div>
-      <div class="popup-row"><span class="k">Source</span><span class="v">H&amp;F Council, DWG 58800/15, Jul 2023</span></div>
-    </div>`;
-
-    marker.bindPopup(html, { maxWidth: 340 });
-    marker.on('mouseover', function() { this.setStyle({ fillOpacity: 0.75, weight: 3 }); });
-    marker.on('mouseout', function() { this.setStyle({ fillOpacity: 0.45, weight: 2 }); });
-    a4hfLayerGroup.addLayer(marker);
-  });
-}
 
 
 // ── H&F BOROUGH BOUNDARY ─────────────────────────────────────────────────────
@@ -917,13 +888,24 @@ function renderOfficeLoss() {
   });
 }
 
+
+// ── SIDEBAR COLLAPSE ─────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebarPanel');
+  const btn     = document.getElementById('sidebarToggleBtn');
+  const collapsed = sidebar.classList.toggle('collapsed');
+  btn.classList.toggle('collapsed', collapsed);
+  btn.textContent = collapsed ? '›' : '‹';
+  // let Leaflet know the container resized
+  setTimeout(() => map.invalidateSize(), 260);
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 updateViewportInfo();
 loadAllLayers();
 renderBoundary();
 renderOfficeLoss();
 renderPostcodes();
-renderA4HF();
 </script>
 </body>
 </html>
